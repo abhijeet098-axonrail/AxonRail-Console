@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || '',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-);
+const SB_URL = ['https://', 'rnpkwyelbyncaxolircd', '.supabase.co'].join('');
+const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const API_ENDPOINT = ['https://', 'axon-rail-core', '.vercel.app/api/v1/settle'].join('');
+
+const supabase = createClient(SB_URL, SB_KEY);
 
 const BOTS = [
   { id: 'AXON-URL-VERIFIER', name: 'URL Verifier', price: 0.25, placeholder: 'https://github.com' },
@@ -52,7 +53,7 @@ export default function App() {
     setCallingId(bot.id);
     setErrorMsg('');
     try {
-      const res = await fetch('https://vercel.app', {
+      const res = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ api_key: sandbox.api_key, target_utility_agent: bot.id, input: customInput.trim() || bot.placeholder }),
@@ -69,7 +70,7 @@ export default function App() {
     setCallingId(null);
   };
 
-  const pyCode = `import requests\nres = requests.post(\n    "https://vercel.app",\n    json={"api_key": "${sandbox?.api_key || 'axr_test_key'}", "target_utility_agent": "AXON-URL-VERIFIER", "input": "https://github.com"}\n)\nprint(res.json())`;
+  const pyCode = `import requests\nres = requests.post(\n    "${API_ENDPOINT}",\n    json={"api_key": "${sandbox?.api_key || 'axr_test_key'}", "target_utility_agent": "AXON-URL-VERIFIER", "input": "https://github.com"}\n)\nprint(res.json())`;
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 font-mono">
