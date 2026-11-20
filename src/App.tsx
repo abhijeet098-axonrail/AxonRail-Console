@@ -112,3 +112,8 @@ export default function App() {
             <pre className="text-[11px] text-slate-300 bg-slate-900 p-3 rounded border border-slate-800 overflow-x-auto max-h-48">{pyCode}</pre>
           </div>
         </div>
+              </main>
+    </div>
+  );
+}
+
