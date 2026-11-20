@@ -57,16 +57,14 @@ export default function App() {
 
   const pyCode = `import requests\nres = requests.post("${API_ENDPOINT}", json={"api_key": "${sandbox?.api_key || 'axr_test_key'}", "target_utility_agent": "AXON-URL-VERIFIER", "input": "https://github.com"})\nprint(res.json())`;
 
-  if (booting) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center font-mono text-white p-6">
-        <div className="px-4 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-widest mb-4 animate-pulse">INITIALIZING AXONRAIL M2M SANDBOX</div>
-        <h1 className="font-sans text-3xl font-black tracking-tight text-white">AxonRail <span className="text-cyan-400">Console</span></h1>
-        <p className="text-xs text-slate-400 mt-2">Connecting Autonomous Agent Settlement Gateway // ₹0.12 Micro-Toll</p>
-        <div className="w-56 h-1 bg-slate-900 rounded-full overflow-hidden mt-6"><div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-full animate-pulse"></div></div>
-      </div>
-    );
-  }
+  if (booting) return (
+    <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center font-mono text-white p-6">
+      <div className="px-4 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-widest mb-4 animate-pulse">INITIALIZING AXONRAIL M2M SANDBOX</div>
+      <h1 className="font-sans text-3xl font-black text-white">AxonRail <span className="text-cyan-400">Console</span></h1>
+      <p className="text-xs text-slate-400 mt-2">Autonomous Agent Settlement Gateway // ₹0.12 Micro-Toll</p>
+      <div className="w-56 h-1 bg-slate-900 rounded-full overflow-hidden mt-6"><div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-full animate-pulse"></div></div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 font-mono">
@@ -111,3 +109,6 @@ export default function App() {
           </div>
           <div className="border border-slate-800 bg-slate-950 p-3.5 rounded-xl">
             <div className="flex justify-between text-[10px] text-slate-400 mb-2"><span>5-LINE PYTHON AGENT SDK</span><button onClick={() => { navigator.clipboard.writeText(pyCode); setCopied(true); setTimeout(() => setCopied(false), 1500); }} className="text-emerald-400">{copied ? 'COPIED!' : 'COPY'}</button></div>
+            <pre className="text-[11px] text-slate-300 bg-slate-900 p-3 rounded border border-slate-800 overflow-x-auto max-h-48">{pyCode}</pre>
+          </div>
+        </div>
