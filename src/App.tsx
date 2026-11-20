@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 const SB_URL = ['https://', 'rnpkwyelbyncaxolircd', '.supabase.co'].join('');
 const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const API_ENDPOINT = ['https://', 'axon-rail-core', '.vercel.app/api/v1/settle'].join('');
-
 const supabase = createClient(SB_URL, SB_KEY);
 
 const BOTS = [
@@ -19,6 +18,7 @@ const BOTS = [
 const readLS = (k: string) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 
 export default function App() {
+  const [booting, setBooting] = useState(true);
   const [devName, setDevName] = useState('');
   const [sandbox, setSandbox] = useState<any>(() => readLS('axr_client_session'));
   const [customInput, setCustomInput] = useState<string>(() => localStorage.getItem('axr_client_input') || '');
@@ -28,6 +28,7 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => { const t = setTimeout(() => setBooting(false), 1600); return () => clearTimeout(t); }, []);
   useEffect(() => { sandbox ? localStorage.setItem('axr_client_session', JSON.stringify(sandbox)) : localStorage.removeItem('axr_client_session'); }, [sandbox]);
   useEffect(() => { localStorage.setItem('axr_client_input', customInput); }, [customInput]);
   useEffect(() => { lastResponse ? localStorage.setItem('axr_client_res', JSON.stringify(lastResponse)) : localStorage.removeItem('axr_client_res'); }, [lastResponse]);
@@ -35,23 +36,19 @@ export default function App() {
   const createKey = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!devName.trim()) return;
-    setLoading(true);
-    setErrorMsg('');
+    setLoading(true); setErrorMsg('');
     const hex = Array.from(crypto.getRandomValues(new Uint8Array(10))).map((b) => b.toString(16).padStart(2, '0')).join('');
     const { data, error } = await supabase
       .from('developer_sandboxes')
       .insert([{ developer_name: devName.trim(), api_key: `axr_test_${hex}`, sandbox_balance: 500.0, total_calls: 0 }])
-      .select()
-      .single();
-    if (error) setErrorMsg(error.message);
-    else setSandbox(data);
+      .select().single();
+    error ? setErrorMsg(error.message) : setSandbox(data);
     setLoading(false);
   };
 
   const runBot = async (bot: typeof BOTS[number]) => {
     if (!sandbox) return;
-    setCallingId(bot.id);
-    setErrorMsg('');
+    setCallingId(bot.id); setErrorMsg('');
     try {
       const res = await fetch(API_ENDPOINT, {
         method: 'POST',
@@ -64,13 +61,26 @@ export default function App() {
         setLastResponse(json);
         setSandbox((p: any) => ({ ...p, sandbox_balance: json.billing_breakdown_inr.remaining_sandbox_balance, total_calls: p.total_calls + 1 }));
       }
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Network error');
-    }
+    } catch (err: any) { setErrorMsg(err?.message || 'Network error'); }
     setCallingId(null);
   };
 
   const pyCode = `import requests\nres = requests.post(\n    "${API_ENDPOINT}",\n    json={"api_key": "${sandbox?.api_key || 'axr_test_key'}", "target_utility_agent": "AXON-URL-VERIFIER", "input": "https://github.com"}\n)\nprint(res.json())`;
+
+  if (booting) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center font-mono text-white p-6">
+        <div className="px-4 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-widest mb-4 animate-pulse">
+          INITIALIZING AXONRAIL M2M SANDBOX
+        </div>
+        <h1 className="font-sans text-3xl font-black tracking-tight text-white">AxonRail <span className="text-cyan-400">Console</span></h1>
+        <p className="text-xs text-slate-400 mt-2">Connecting Autonomous Agent Settlement Gateway // ₹0.12 Micro-Toll</p>
+        <div className="w-56 h-1 bg-slate-900 rounded-full overflow-hidden mt-6">
+          <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-full animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 font-mono">
@@ -143,18 +153,3 @@ export default function App() {
             </div>
             <pre className="text-[11px] text-cyan-300 bg-slate-900 p-3 rounded border border-slate-800 overflow-x-auto max-h-48">
               {lastResponse ? JSON.stringify(lastResponse, null, 2) : '// Generate key & click "RUN & SETTLE LIVE" on any bot above'}
-            </pre>
-          </div>
-
-          <div className="border border-slate-800 bg-slate-950 p-3.5 rounded-xl">
-            <div className="flex justify-between text-[10px] text-slate-400 mb-2">
-              <span>5-LINE PYTHON AGENT SDK</span>
-              <button onClick={() => { navigator.clipboard.writeText(pyCode); setCopied(true); setTimeout(() => setCopied(false), 1500); }} className="text-emerald-400">{copied ? 'COPIED!' : 'COPY'}</button>
-            </div>
-            <pre className="text-[11px] text-slate-300 bg-slate-900 p-3 rounded border border-slate-800 overflow-x-auto max-h-48">{pyCode}</pre>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
