@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { BootScreen } from './BootScreen';
 
 const SB_URL = ['https://', 'rnpkwyelbyncaxolircd', '.supabase.co'].join('');
 const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -28,7 +29,6 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => { const t = setTimeout(() => setBooting(false), 1600); return () => clearTimeout(t); }, []);
   useEffect(() => { sandbox ? localStorage.setItem('axr_client_session', JSON.stringify(sandbox)) : localStorage.removeItem('axr_client_session'); }, [sandbox]);
   useEffect(() => { localStorage.setItem('axr_client_input', customInput); }, [customInput]);
   useEffect(() => { lastResponse ? localStorage.setItem('axr_client_res', JSON.stringify(lastResponse)) : localStorage.removeItem('axr_client_res'); }, [lastResponse]);
@@ -57,14 +57,7 @@ export default function App() {
 
   const pyCode = `import requests\nres = requests.post("${API_ENDPOINT}", json={"api_key": "${sandbox?.api_key || 'axr_test_key'}", "target_utility_agent": "AXON-URL-VERIFIER", "input": "https://github.com"})\nprint(res.json())`;
 
-  if (booting) return (
-    <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center font-mono text-white p-6">
-      <div className="px-4 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-widest mb-4 animate-pulse">INITIALIZING AXONRAIL M2M SANDBOX</div>
-      <h1 className="font-sans text-3xl font-black text-white">AxonRail <span className="text-cyan-400">Console</span></h1>
-      <p className="text-xs text-slate-400 mt-2">Autonomous Agent Settlement Gateway // ₹0.12 Micro-Toll</p>
-      <div className="w-56 h-1 bg-slate-900 rounded-full overflow-hidden mt-6"><div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-full animate-pulse"></div></div>
-    </div>
-  );
+  if (booting) return <BootScreen onComplete={() => setBooting(false)} />;
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 font-mono">
@@ -112,8 +105,7 @@ export default function App() {
             <pre className="text-[11px] text-slate-300 bg-slate-900 p-3 rounded border border-slate-800 overflow-x-auto max-h-48">{pyCode}</pre>
           </div>
         </div>
-              </main>
+      </main>
     </div>
   );
 }
-
